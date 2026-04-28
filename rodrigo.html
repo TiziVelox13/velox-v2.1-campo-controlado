@@ -1,0 +1,1344 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campo Controlado · Velox V2.1 · Rodrigo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+
+    /* ══════════════════════════════════════════════════════════
+       VARIABLES DE ENTORNO — MODIFICAR AQUÍ PARA DUPLICAR
+       ══════════════════════════════════════════════════════════ */
+    /* Estas variables se usan desde JS también — ver bloque <script> al final */
+
+    :root {
+      color-scheme: dark;
+
+      /* ── Design tokens ── */
+      --bg:       #040812;
+      --line:     rgba(255,255,255,.10);
+      --text:     #eef4ff;
+      --muted:    #7a90b0;
+      --accent:   #22e6be;
+      --accent2:  #5c7cff;
+      --warn:     #ffd166;
+      --danger:   #ff6b6b;
+
+      /* ── Chat tokens ── */
+      --msg-user-bg:    #22e6be;
+      --msg-user-color: #031210;
+      --msg-bot-bg:     rgba(255,255,255,.07);
+      --msg-bot-color:  #eef4ff;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       RESET + BASE
+       ══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background:
+        radial-gradient(ellipse at 10% 10%, rgba(34,230,190,.12), transparent 35%),
+        radial-gradient(ellipse at 90% 8%,  rgba(92,124,255,.15), transparent 32%),
+        radial-gradient(ellipse at 55% 98%, rgba(34,230,190,.04), transparent 38%),
+        linear-gradient(160deg, #040811 0%, #06091a 55%, #040810 100%);
+      color: var(--text);
+      font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .14;
+      background-image: radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(ellipse at 50% 40%, black, transparent 75%);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LAYOUT PRINCIPAL — 3 columnas
+       ══════════════════════════════════════════════════════════ */
+    .app {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 270px minmax(0, 1fr) 268px;
+      gap: 14px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PANEL BASE (sidebar + main + casos)
+       ══════════════════════════════════════════════════════════ */
+    .sidebar, .main-col, .cases-col {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, rgba(14,21,40,.93), rgba(6,10,20,.97));
+      box-shadow:
+        0 24px 60px rgba(0,0,0,.50),
+        inset 0 1px 0 rgba(255,255,255,.05);
+      backdrop-filter: blur(22px);
+      border-radius: 24px;
+      overflow: hidden;
+      animation: panelIn .4s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .sidebar      { display: flex; flex-direction: column; animation-delay: 0s; }
+    .main-col     { display: flex; flex-direction: column; animation-delay: .05s; }
+    .cases-col    { display: flex; flex-direction: column; animation-delay: .10s; }
+
+    /* scrollable inner */
+    .panel-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.07) transparent;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       BRAND / LOGO
+       ══════════════════════════════════════════════════════════ */
+    .brand { display: flex; align-items: center; gap: 10px; }
+
+    .logo {
+      flex-shrink: 0;
+      width: 42px; height: 42px;
+      border-radius: 13px;
+      display: grid; place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 15px;
+      color: #031012;
+      background: linear-gradient(135deg, #22e6be 0%, #20d4cc 50%, #5c7cff 100%);
+      box-shadow: 0 6px 22px rgba(34,230,190,.28), 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    .brand-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 15px;
+      letter-spacing: -.4px; line-height: 1.1;
+      color: #eef4ff;
+    }
+
+    .brand-sub { margin-top: 2px; color: var(--muted); font-size: 11px; line-height: 1.3; }
+
+    /* ══════════════════════════════════════════════════════════
+       BADGES / PILLS
+       ══════════════════════════════════════════════════════════ */
+    .badge-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10.5px; font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-test {
+      border: 1px solid rgba(255,107,107,.35);
+      background: rgba(255,107,107,.10);
+      color: #ff9f9f;
+    }
+
+    .badge-env {
+      border: 1px solid rgba(92,124,255,.30);
+      background: rgba(92,124,255,.10);
+      color: #a0b8ff;
+    }
+
+    .badge-ver {
+      border: 1px solid rgba(34,230,190,.28);
+      background: rgba(34,230,190,.08);
+      color: #7ae8ce;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-warn {
+      border: 1px solid rgba(255,209,102,.28);
+      background: rgba(255,209,102,.08);
+      color: #ffd888;
+    }
+
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #ff6b6b;
+      box-shadow: 0 0 0 0 rgba(255,107,107,.5);
+      animation: pulse 2.2s ease infinite;
+      flex-shrink: 0;
+    }
+
+    .dot-green {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #22e6be;
+      box-shadow: 0 0 0 0 rgba(34,230,190,.5);
+      animation: pulseGreen 2.2s ease infinite;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CARDS (bloques del sidebar)
+       ══════════════════════════════════════════════════════════ */
+    .card {
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 12px 13px;
+      background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: #506075;
+      margin-bottom: 10px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       TESTER ID BLOCK
+       ══════════════════════════════════════════════════════════ */
+    .tester-id {
+      border: 1px solid rgba(92,124,255,.22);
+      border-radius: 14px;
+      padding: 12px 13px;
+      background: rgba(92,124,255,.07);
+    }
+
+    .tester-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: #7a90b0;
+      margin-bottom: 6px;
+    }
+
+    .tester-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 17px;
+      color: #c0d2ff;
+      letter-spacing: -.3px;
+    }
+
+    .tester-meta {
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #506075;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       INSTRUCCIONES
+       ══════════════════════════════════════════════════════════ */
+    .instr-list { display: flex; flex-direction: column; gap: 7px; }
+
+    .instr-item {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 7px;
+      align-items: start;
+      font-size: 11.5px;
+      color: #a8b8d0;
+      line-height: 1.4;
+    }
+
+    .instr-num {
+      width: 20px; height: 20px;
+      border-radius: 7px;
+      background: rgba(34,230,190,.10);
+      color: var(--accent);
+      font-weight: 700; font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+
+    .instr-item.warn-item .instr-num {
+      background: rgba(255,107,107,.10);
+      color: #ff9f9f;
+    }
+
+    .instr-item b { color: #d0e0f0; }
+
+    /* ══════════════════════════════════════════════════════════
+       EVALUATION DOC BUTTON
+       ══════════════════════════════════════════════════════════ */
+    .eval-doc {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(92,124,255,.28);
+      background: rgba(92,124,255,.09);
+      color: #a0b8ff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 12.5px;
+      transition: all .2s;
+      cursor: pointer;
+    }
+
+    .eval-doc:hover {
+      border-color: rgba(92,124,255,.5);
+      background: rgba(92,124,255,.17);
+      color: #c0d2ff;
+      transform: translateY(-1px);
+    }
+
+    .eval-icon {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: rgba(92,124,255,.18);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+
+    .eval-doc-label { font-size: 10px; color: #6a80a0; font-weight: 500; margin-top: 1px; }
+
+    /* ══════════════════════════════════════════════════════════
+       TOPBAR (columna central)
+       ══════════════════════════════════════════════════════════ */
+    .topbar {
+      padding: 15px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      background: linear-gradient(90deg, rgba(34,230,190,.06) 0%, rgba(92,124,255,.06) 100%);
+      flex-shrink: 0;
+    }
+
+    .topbar-left { display: flex; flex-direction: column; gap: 5px; }
+
+    .topbar-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 16px;
+      letter-spacing: -.4px; line-height: 1.1;
+      color: #eef4ff;
+    }
+
+    .topbar-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    .topbar-right { display: flex; align-items: center; gap: 7px; }
+
+    .btn-reset {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,107,107,.28);
+      background: rgba(255,107,107,.07);
+      color: #ff9f9f;
+      font-size: 11.5px; font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn-reset:hover {
+      background: rgba(255,107,107,.14);
+      border-color: rgba(255,107,107,.45);
+      color: #ffbcbc;
+    }
+
+    .btn-reset:active { transform: scale(.97); }
+
+    /* ══════════════════════════════════════════════════════════
+       FLUJO STRIP
+       ══════════════════════════════════════════════════════════ */
+    .flujo {
+      padding: 8px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      overflow-x: auto;
+      background: rgba(0,0,0,.16);
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+    .flujo::-webkit-scrollbar { display: none; }
+
+    .fstep {
+      padding: 4px 10px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.03);
+      font-size: 10.5px; font-weight: 700;
+      color: #5d7290;
+      white-space: nowrap;
+    }
+
+    .farrow {
+      color: rgba(255,255,255,.15);
+      font-size: 11px;
+      padding: 0 5px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CHAT AREA — custom build (sin n8n widget)
+       ══════════════════════════════════════════════════════════ */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 14px;
+      gap: 10px;
+    }
+
+    .messages {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 2px 2px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.07) transparent;
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #3a5070;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .empty-icon {
+      width: 48px; height: 48px;
+      border-radius: 16px;
+      background: rgba(34,230,190,.07);
+      border: 1px solid rgba(34,230,190,.12);
+      display: grid; place-items: center;
+    }
+
+    .empty-state p { font-size: 12px; line-height: 1.5; max-width: 220px; }
+
+    /* Message bubbles */
+    .msg-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      animation: msgIn .22s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .msg-row.user { justify-content: flex-end; }
+    .msg-row.bot  { justify-content: flex-start; }
+
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border-radius: 9px;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 700;
+      flex-shrink: 0;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .msg-avatar.bot-av {
+      background: linear-gradient(135deg, #22e6be, #5c7cff);
+      color: #031012;
+      font-size: 11px;
+    }
+
+    .msg-bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-row.user .msg-bubble {
+      background: var(--msg-user-bg);
+      color: var(--msg-user-color);
+      border-bottom-right-radius: 5px;
+    }
+
+    .msg-row.bot .msg-bubble {
+      background: var(--msg-bot-bg);
+      color: var(--msg-bot-color);
+      border: 1px solid rgba(255,255,255,.07);
+      border-bottom-left-radius: 5px;
+    }
+
+    /* Typing indicator */
+    .typing-bubble {
+      background: var(--msg-bot-bg);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      border-bottom-left-radius: 5px;
+      padding: 12px 16px;
+      display: flex; gap: 5px; align-items: center;
+    }
+
+    .typing-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #7a90b0;
+      animation: typingDot 1.4s ease infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+
+    /* ══════════════════════════════════════════════════════════
+       INPUT COMPOSER
+       ══════════════════════════════════════════════════════════ */
+    .composer {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: #080f1e;
+      transition: border-color .2s;
+    }
+
+    .composer:focus-within {
+      border-color: rgba(34,230,190,.35);
+    }
+
+    #chat-input {
+      flex: 1;
+      min-height: 42px;
+      max-height: 120px;
+      resize: none;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #eef4ff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.5;
+      caret-color: #22e6be;
+      padding: 8px 2px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.07) transparent;
+    }
+
+    #chat-input::placeholder { color: #4a6278; }
+
+    .btn-send {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      border: none;
+      background: linear-gradient(135deg, #22e6be, #1ac9a6);
+      color: #031210;
+      cursor: pointer;
+      display: grid; place-items: center;
+      transition: all .2s;
+      box-shadow: 0 4px 14px rgba(34,230,190,.25);
+    }
+
+    .btn-send:hover { background: linear-gradient(135deg, #30f0c8, #22e6be); box-shadow: 0 6px 18px rgba(34,230,190,.35); }
+    .btn-send:active { transform: scale(.93); }
+    .btn-send:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ══════════════════════════════════════════════════════════
+       COLUMNA DE CASOS (derecha)
+       ══════════════════════════════════════════════════════════ */
+    .cases-header {
+      padding: 14px 15px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      flex-shrink: 0;
+    }
+
+    .cases-header-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 800;
+      color: #c0d0e8;
+      letter-spacing: -.3px;
+    }
+
+    .cases-header-sub { color: var(--muted); font-size: 11px; margin-top: 3px; }
+
+    .cases-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.06) transparent;
+    }
+
+    .case-group-label {
+      font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: #3a5060;
+      margin-top: 6px; margin-bottom: 2px;
+      padding-left: 2px;
+    }
+
+    .case-group-label:first-child { margin-top: 0; }
+
+    .quick-btn {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.03);
+      color: #b0c4dc;
+      border-radius: 11px;
+      padding: 9px 11px;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 11.5px;
+      font-family: 'DM Sans', sans-serif;
+      transition: transform .16s, background .16s, border-color .16s;
+      position: relative;
+      overflow: hidden;
+      line-height: 1.35;
+    }
+
+    .quick-btn::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity .16s;
+    }
+
+    .quick-btn:hover {
+      transform: translateX(3px);
+      border-color: rgba(34,230,190,.28);
+      background: rgba(34,230,190,.055);
+      color: #d0e8f0;
+    }
+
+    .quick-btn:hover::before { opacity: 1; }
+    .quick-btn:active { transform: translateX(2px) scale(.99); }
+
+    .quick-btn small {
+      display: block;
+      margin-top: 2px;
+      color: #4a6070;
+      font-weight: 500;
+      font-size: 10px;
+    }
+
+    .quick-btn.libre {
+      border: 1px dashed rgba(34,230,190,.18);
+      background: rgba(34,230,190,.035);
+      color: #6a9080;
+    }
+
+    .quick-btn.libre:hover {
+      border-color: rgba(34,230,190,.38);
+      color: #8abcaa;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ERROR STATE
+       ══════════════════════════════════════════════════════════ */
+    .msg-error {
+      font-size: 11.5px;
+      color: #ff9f9f;
+      background: rgba(255,107,107,.08);
+      border: 1px solid rgba(255,107,107,.18);
+      border-radius: 10px;
+      padding: 9px 12px;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       TOAST
+       ══════════════════════════════════════════════════════════ */
+    .toast {
+      position: fixed;
+      right: 20px; bottom: 20px;
+      z-index: 9999;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px;
+      border-radius: 13px;
+      background: rgba(34,230,190,.96);
+      color: #031210;
+      font-weight: 800; font-size: 12.5px;
+      box-shadow: 0 10px 32px rgba(34,230,190,.22), 0 4px 10px rgba(0,0,0,.28);
+      transform: translateY(20px) scale(.97);
+      opacity: 0; pointer-events: none;
+      transition: transform .22s cubic-bezier(.22,1,.36,1), opacity .22s ease;
+    }
+    .toast.show { transform: translateY(0) scale(1); opacity: 1; }
+
+    /* ══════════════════════════════════════════════════════════
+       ANIMATIONS
+       ══════════════════════════════════════════════════════════ */
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,.5); }
+      70%       { box-shadow: 0 0 0 6px rgba(255,107,107,.0); }
+    }
+    @keyframes pulseGreen {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34,230,190,.5); }
+      70%       { box-shadow: 0 0 0 6px rgba(34,230,190,.0); }
+    }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(9px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes typingDot {
+      0%, 80%, 100% { transform: translateY(0); opacity: .4; }
+      40%            { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       RESPONSIVE
+       ══════════════════════════════════════════════════════════ */
+    @media (max-width: 1280px) {
+      .app { grid-template-columns: 270px minmax(0,1fr); }
+      .cases-col { display: none; }
+    }
+
+    @media (max-width: 900px) {
+      html, body { overflow: auto; }
+      .app { height: auto; min-height: 100vh; grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+      .main-col { min-height: 600px; }
+      .sidebar .panel-scroll { max-height: 340px; }
+    }
+
+  </style>
+</head>
+
+<body>
+<main class="app">
+
+  <!-- ══════════════════════════════════════════════════
+       SIDEBAR IZQUIERDO — Tester + Instrucciones
+  ══════════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="panel-scroll">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="logo">VX</div>
+        <div>
+          <div class="brand-title">Agente IA Velox</div>
+          <div class="brand-sub">Campo controlado · Uso interno</div>
+        </div>
+      </div>
+
+      <!-- Status badges -->
+      <div class="badge-row">
+        <span class="badge badge-test"><span class="dot"></span> TEST</span>
+        <span class="badge badge-ver">V2.1</span>
+        <span class="badge badge-warn">Campo controlado</span>
+      </div>
+
+      <!-- Tester ID -->
+      <div class="tester-id">
+        <div class="tester-label">Entorno de tester</div>
+        <div class="tester-name" id="tester-display">Rodrigo</div>
+        <div class="tester-meta" id="env-display">Entorno de prueba — Rodrigo</div>
+      </div>
+
+      <!-- Instrucciones -->
+      <section class="card">
+        <div class="card-title">Instrucciones de uso</div>
+        <div class="instr-list">
+          <div class="instr-item">
+            <span class="instr-num">1</span>
+            <span>Probá como si fueras un <b>cliente ficticio</b>.</span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num">2</span>
+            <span>Usá los casos sugeridos o escribí libremente.</span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num">3</span>
+            <span>Para un caso nuevo, usá el botón <b>Reiniciar caso</b>.</span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num">4</span>
+            <span>Si ves algo raro, anotalo en tu doc de evaluación.</span>
+          </div>
+          <div class="instr-item warn-item">
+            <span class="instr-num">!</span>
+            <span><b>No uses DNI reales</b> ni datos de personas reales.</span>
+          </div>
+          <div class="instr-item warn-item">
+            <span class="instr-num">!</span>
+            <span><b>No mandes datos de tarjeta</b> por ningún motivo.</span>
+          </div>
+          <div class="instr-item warn-item">
+            <span class="instr-num">!</span>
+            <span>No uses clientes reales como escenario.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documento de evaluación -->
+      <a class="eval-doc" id="eval-doc-link" href="https://docs.google.com/document/d/1Rt-U3o-vPV-soE5za5VCAYhN35UQIRTdUatqWhizNEM/edit?usp=sharing" target="_blank" rel="noopener">
+        <div class="eval-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a0b8ff" stroke-width="2.5" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div>
+          <div>Documento de evaluación</div>
+          <div class="eval-doc-label" id="eval-doc-label">Rodrigo — abrir en Google Docs</div>
+        </div>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:auto;flex-shrink:0;opacity:.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>
+
+      <!-- Info payload -->
+      <section class="card">
+        <div class="card-title">Metadata enviada al webhook</div>
+        <div class="instr-list">
+          <div class="instr-item">
+            <span class="instr-num" style="background:rgba(92,124,255,.10);color:#a0b8ff;">→</span>
+            <span><b>chatInput</b>: solo el mensaje del cliente</span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num" style="background:rgba(92,124,255,.10);color:#a0b8ff;">→</span>
+            <span><b>tester</b>: Rodrigo <em style="color:#3a5060;">(separado)</em></span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num" style="background:rgba(92,124,255,.10);color:#a0b8ff;">→</span>
+            <span><b>source</b>: campo_controlado_v2_1</span>
+          </div>
+          <div class="instr-item">
+            <span class="instr-num" style="background:rgba(34,230,190,.10);color:#22e6be;">ID</span>
+            <span><b>sessionId</b>: <span id="session-display" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#7ae8ce;word-break:break-all;">cargando…</span></span>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /panel-scroll -->
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════
+       COLUMNA CENTRAL — Chat principal
+  ══════════════════════════════════════════════════ -->
+  <section class="main-col">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Agente IA Velox V2.1</div>
+        <div class="topbar-badges">
+          <span class="badge badge-test"><span class="dot"></span> TEST — No usar datos reales</span>
+          <span class="badge badge-env" id="topbar-env">Entorno de prueba — Rodrigo</span>
+          <span class="badge badge-ver">V2.1</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-reset" id="btn-reset" onclick="resetConversation()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.71"/></svg>
+          Reiniciar caso
+        </button>
+      </div>
+    </header>
+
+    <!-- Flujo strip -->
+    <div class="flujo" aria-label="Flujo del sistema">
+      <div class="fstep">Cliente ficticio</div>
+      <div class="farrow">→</div>
+      <div class="fstep">Agente IA Velox</div>
+      <div class="farrow">→</div>
+      <div class="fstep">KB DIRECTV</div>
+      <div class="farrow">→</div>
+      <div class="fstep">Logs + CRM</div>
+      <div class="farrow">→</div>
+      <div class="fstep">Evaluación Rodrigo</div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="chat-area">
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22e6be" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <p>Escribí como si fueras un cliente ficticio, o elegí un caso sugerido del panel derecho.</p>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <textarea
+          id="chat-input"
+          placeholder="Escribí el mensaje del cliente ficticio..."
+          rows="1"
+          aria-label="Mensaje"
+        ></textarea>
+        <button class="btn-send" id="btn-send" aria-label="Enviar" onclick="sendMessage()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+
+    </div><!-- /chat-area -->
+  </section>
+
+  <!-- ══════════════════════════════════════════════════
+       COLUMNA DERECHA — Casos rápidos
+  ══════════════════════════════════════════════════ -->
+  <aside class="cases-col">
+    <div class="cases-header">
+      <div class="cases-header-title">Casos rápidos</div>
+      <div class="cases-header-sub">Clic para cargar en el input — revisá antes de enviar</div>
+    </div>
+
+    <div class="cases-scroll">
+
+      <div class="case-group-label">Lead caliente</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 2 teles, tengo tarjeta, la segunda tiene HDMI y quiero ver el Mundial. Me interesa avanzar.">
+        2 teles + HDMI + Mundial + tarjeta
+        <small>Score esperado: alto — Lead caliente</small>
+      </button>
+
+      <div class="case-group-label">Fútbol argentino</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 1 tele, tengo tarjeta y quiero todo el fútbol argentino.">
+        1 tele + tarjeta + fútbol argentino
+        <small>Verificar disponibilidad y oferta</small>
+      </button>
+
+      <div class="case-group-label">Mundial</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 1 tele, tengo tarjeta y quiero asegurarme de ver el Mundial.">
+        1 tele + tarjeta + Mundial
+        <small>Verificar respuesta sobre cobertura</small>
+      </button>
+
+      <div class="case-group-label">Supervisión</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 4 teles con Mercado Pago y no tengo ningún familiar con tarjeta.">
+        4 teles + Mercado Pago sin familiar
+        <small>Score esperado: medio — Supervisión</small>
+      </button>
+
+      <div class="case-group-label">Mercado Pago</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 1 tele y puedo pagar con Mercado Pago.">
+        1 tele + Mercado Pago
+        <small>Verificar flujo sin tarjeta de crédito</small>
+      </button>
+
+      <div class="case-group-label">Tarjeta de crédito</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 3 teles y pagar con tarjeta de crédito. ¿Qué tarjetas aceptan?">
+        3 teles + tarjeta de crédito
+        <small>Verificar opciones de pago y tarjetas</small>
+      </button>
+
+      <div class="case-group-label">Novelas / canales</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Quiero instalación nueva para 1 tele, tengo tarjeta y me interesan novelas. ¿Tiene Las Estrellas o canales de novelas?">
+        1 tele + novelas + Las Estrellas
+        <small>Verificar catálogo de canales</small>
+      </button>
+
+      <div class="case-group-label">Cliente activo</div>
+      <button class="quick-btn" onclick="loadCase(this.dataset.prompt)" data-prompt="Ya tengo DirecTV y quiero pagar menos.">
+        Cliente existente — reducir costo
+        <small>Verificar derivación correcta</small>
+      </button>
+
+      <div class="case-group-label">Caso libre</div>
+      <button class="quick-btn libre" onclick="clearAndFocus()">
+        Escribir caso libre
+        <small>Limpia el input para escribir libremente</small>
+      </button>
+
+    </div><!-- /cases-scroll -->
+  </aside>
+
+</main><!-- /app -->
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg">Caso cargado en el input.</span>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script>
+  /* ─────────────────────────────────────────────────────────
+     VARIABLES DE ENTORNO — MODIFICAR AQUÍ PARA DUPLICAR
+     Cambiar estas 4 variables para crear el entorno de otro tester.
+  ───────────────────────────────────────────────────────── */
+  const TESTER_NAME        = "Rodrigo";
+  const TEST_ENVIRONMENT   = "Entorno de prueba — Rodrigo";
+  const AGENT_VERSION      = "V2.1";
+  const N8N_WEBHOOK_URL    = "https://veloxv4v4.app.n8n.cloud/webhook/2bbd38c2-a626-42eb-a2a8-bdcb246ad3a7/chat";
+  const EVALUATION_DOC_URL = "https://docs.google.com/document/d/1Rt-U3o-vPV-soE5za5VCAYhN35UQIRTdUatqWhizNEM/edit?usp=sharing";
+
+  /* ─────────────────────────────────────────────────────────
+     INICIALIZACIÓN — aplica variables al DOM
+  ───────────────────────────────────────────────────────── */
+  (function init() {
+    document.getElementById('tester-display').textContent = TESTER_NAME;
+    document.getElementById('env-display').textContent    = TEST_ENVIRONMENT;
+    document.getElementById('topbar-env').textContent     = TEST_ENVIRONMENT;
+    document.getElementById('eval-doc-label').textContent = TESTER_NAME + ' — abrir en Google Docs';
+
+    var evalLink = document.getElementById('eval-doc-link');
+    if (EVALUATION_DOC_URL && EVALUATION_DOC_URL !== 'PEGAR_LINK_DOCUMENTO_EVALUACION') {
+      evalLink.href = EVALUATION_DOC_URL;
+    } else {
+      evalLink.href = '#';
+      evalLink.onclick = function(e) {
+        e.preventDefault();
+        showToast('Pegá el link del doc de evaluación en EVALUATION_DOC_URL', 3200);
+      };
+    }
+
+    document.title = 'Campo Controlado · Velox ' + AGENT_VERSION + ' · ' + TESTER_NAME;
+  })();
+
+  /* ─────────────────────────────────────────────────────────
+     ESTADO
+  ───────────────────────────────────────────────────────── */
+  var conversationHistory = [];
+  var isWaiting = false;
+
+  /* ─────────────────────────────────────────────────────────
+     SESSION ID — estable por caso, se regenera SOLO con Reiniciar caso
+     Fix V2.1:
+     - Usar sessionStorage para evitar memoria vieja pegada entre pruebas.
+     - Crear una key versionada por tester/agente.
+     - Reiniciar caso SIEMPRE crea un sessionId nuevo.
+     - El payload SIEMPRE manda sessionId: currentSessionId.
+  ───────────────────────────────────────────────────────── */
+  function createSessionId() {
+    return 'campo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  var SESSION_STORAGE_KEY = 'velox_session_id_v2_1_session_fix_' + TESTER_NAME + '_' + AGENT_VERSION;
+
+  function getOrCreateSessionId() {
+    var savedSessionId = null;
+    try { savedSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY); } catch (e) {}
+    if (!savedSessionId) {
+      savedSessionId = createSessionId();
+      try { sessionStorage.setItem(SESSION_STORAGE_KEY, savedSessionId); } catch (e) {}
+    }
+    return savedSessionId;
+  }
+
+  var currentSessionId = getOrCreateSessionId();
+  console.log('VELOX SESSION ACTUAL:', currentSessionId);
+
+  function updateSessionDisplay() {
+    var el = document.getElementById('session-display');
+    if (el) el.textContent = currentSessionId;
+  }
+
+  updateSessionDisplay();
+
+  /* ─────────────────────────────────────────────────────────
+     DOM REFS
+  ───────────────────────────────────────────────────────── */
+  var messagesEl  = document.getElementById('messages');
+  var emptyState  = document.getElementById('empty-state');
+  var inputEl     = document.getElementById('chat-input');
+  var btnSend     = document.getElementById('btn-send');
+  var toast       = document.getElementById('toast');
+  var toastMsg    = document.getElementById('toast-msg');
+
+  /* ─────────────────────────────────────────────────────────
+     TEXTAREA AUTO-RESIZE
+  ───────────────────────────────────────────────────────── */
+  inputEl.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  /* ─────────────────────────────────────────────────────────
+     ENVIAR MENSAJE
+  ───────────────────────────────────────────────────────── */
+  function sendMessage() {
+    if (isWaiting) return;
+
+    var text = inputEl.value.trim();
+    if (!text) {
+      inputEl.focus();
+      return;
+    }
+
+    /* Ocultar empty state */
+    if (emptyState) {
+      emptyState.style.display = 'none';
+    }
+
+    /* Agregar mensaje del usuario */
+    appendMessage('user', text);
+    conversationHistory.push({ role: 'user', content: text });
+
+    /* Limpiar input */
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    inputEl.focus();
+
+    /* Bloquear envío */
+    isWaiting = true;
+    btnSend.disabled = true;
+
+    /* Mostrar typing */
+    var typingId = appendTyping();
+
+    /* ── Payload al webhook ──
+       IMPORTANTE: chatInput contiene SOLO el mensaje del cliente.
+       El tester va en campo separado, nunca dentro de chatInput.
+    ── */
+    var payload = {
+      chatInput:       text,
+      sessionId:       currentSessionId,
+      tester:          TESTER_NAME,
+      testEnvironment: TEST_ENVIRONMENT,
+      agentVersion:    AGENT_VERSION,
+      source:          'campo_controlado_v2_1'
+    };
+
+    /* Validar webhook configurado */
+    if (!N8N_WEBHOOK_URL || N8N_WEBHOOK_URL === 'PEGAR_WEBHOOK_AQUI') {
+      removeTyping(typingId);
+      appendBotMessage('[Entorno de prueba] Webhook no configurado. Pegá la URL en la variable N8N_WEBHOOK_URL del script.\n\nPayload que se enviaría:\n' + JSON.stringify(payload, null, 2));
+      finishWaiting();
+      return;
+    }
+
+    fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      removeTyping(typingId);
+      /* Extraer respuesta — adaptar según estructura del webhook de n8n */
+      var reply = extractReply(data);
+      appendBotMessage(reply);
+      conversationHistory.push({ role: 'assistant', content: reply });
+      finishWaiting();
+    })
+    .catch(function(err) {
+      removeTyping(typingId);
+      appendError('No se pudo conectar al webhook. Verificá la URL y que el workflow esté activo. (' + err.message + ')');
+      finishWaiting();
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     EXTRAER RESPUESTA del payload n8n
+     Adaptar si la estructura del webhook cambia.
+  ───────────────────────────────────────────────────────── */
+  function extractReply(data) {
+    /* Intentar diferentes keys comunes de n8n */
+    if (typeof data === 'string') return data;
+
+    if (data && data.output)   return data.output;
+    if (data && data.text)     return data.text;
+    if (data && data.message)  return data.message;
+    if (data && data.response) return data.response;
+
+    if (Array.isArray(data) && data[0]) {
+      var first = data[0];
+      if (first.output)   return first.output;
+      if (first.text)     return first.text;
+      if (first.message)  return first.message;
+      if (first.response) return first.response;
+
+      if (first.json) {
+        if (first.json.output)   return first.json.output;
+        if (first.json.text)     return first.json.text;
+        if (first.json.message)  return first.json.message;
+        if (first.json.response) return first.json.response;
+      }
+    }
+
+    return JSON.stringify(data, null, 2);
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     APPEND HELPERS
+  ───────────────────────────────────────────────────────── */
+  function appendMessage(role, text) {
+    var row = document.createElement('div');
+    row.className = 'msg-row ' + role;
+
+    if (role === 'bot') {
+      var av = document.createElement('div');
+      av.className = 'msg-avatar bot-av';
+      av.textContent = 'VX';
+      row.appendChild(av);
+    }
+
+    var bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.textContent = text;
+    row.appendChild(bubble);
+
+    messagesEl.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function appendBotMessage(text) {
+    return appendMessage('bot', text);
+  }
+
+  function appendTyping() {
+    var row = document.createElement('div');
+    row.className = 'msg-row bot';
+    row.id = 'typing-' + Date.now();
+
+    var av = document.createElement('div');
+    av.className = 'msg-avatar bot-av';
+    av.textContent = 'VX';
+    row.appendChild(av);
+
+    var bubble = document.createElement('div');
+    bubble.className = 'typing-bubble';
+    bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+    row.appendChild(bubble);
+
+    messagesEl.appendChild(row);
+    scrollBottom();
+    return row.id;
+  }
+
+  function removeTyping(id) {
+    var el = document.getElementById(id);
+    if (el) el.remove();
+  }
+
+  function appendError(text) {
+    var el = document.createElement('div');
+    el.className = 'msg-error';
+    el.textContent = text;
+    messagesEl.appendChild(el);
+    scrollBottom();
+  }
+
+  function finishWaiting() {
+    isWaiting = false;
+    btnSend.disabled = false;
+    inputEl.focus();
+  }
+
+  function scrollBottom() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     REINICIAR CONVERSACIÓN
+  ───────────────────────────────────────────────────────── */
+  function resetConversation() {
+    conversationHistory = [];
+    isWaiting = false;
+    btnSend.disabled = false;
+
+    /* Regenerar sessionId para el nuevo caso.
+       Esto es crítico: si no cambia, n8n Simple Memory arrastra contexto viejo. */
+    currentSessionId = createSessionId();
+
+    try {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, currentSessionId);
+      /* Limpieza defensiva de versiones anteriores que usaban localStorage. */
+      localStorage.removeItem('velox_session_id');
+      localStorage.removeItem('velox_session_id_' + TESTER_NAME + '_' + AGENT_VERSION);
+      localStorage.removeItem('velox_session_id_v2_1_session_fix_' + TESTER_NAME + '_' + AGENT_VERSION);
+    } catch (e) {}
+
+    console.log('VELOX NUEVO SESSION ID:', currentSessionId);
+    updateSessionDisplay();
+
+    /* Limpiar mensajes */
+    messagesEl.innerHTML = '';
+
+    /* Restaurar empty state */
+    var es = document.createElement('div');
+    es.className = 'empty-state';
+    es.id = 'empty-state';
+    es.innerHTML = '<div class="empty-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22e6be" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><p>Escribí como si fueras un cliente ficticio, o elegí un caso sugerido del panel derecho.</p>';
+    messagesEl.appendChild(es);
+    emptyState = es;
+
+    /* Limpiar input */
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    inputEl.focus();
+
+    showToast('Caso reiniciado. Nueva sesión creada.', 2200);
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     CASOS RÁPIDOS — cargar en input (no enviar automáticamente)
+  ───────────────────────────────────────────────────────── */
+  function loadCase(text) {
+    inputEl.value = text;
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    inputEl.focus();
+    showToast('Caso cargado — revisá y enviá cuando estés listo.', 2400);
+  }
+
+  function clearAndFocus() {
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    inputEl.focus();
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     TOAST
+  ───────────────────────────────────────────────────────── */
+  var toastTimer = null;
+
+  function showToast(msg, duration) {
+    if (toastTimer) clearTimeout(toastTimer);
+    toastMsg.textContent = msg || 'Listo.';
+    toast.classList.add('show');
+    toastTimer = setTimeout(function() { toast.classList.remove('show'); }, duration || 2200);
+  }
+
+</script>
+</body>
+</html>

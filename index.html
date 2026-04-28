@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agente IA Velox V2.1 — Portal de Testers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #040812;
+      --panel: rgba(14,21,40,.92);
+      --line: rgba(255,255,255,.10);
+      --text: #eef4ff;
+      --muted: #7a90b0;
+      --accent: #22e6be;
+      --accent2: #5c7cff;
+      --danger: #ff6b6b;
+      --warn: #ffd166;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      background:
+        radial-gradient(ellipse at 12% 10%, rgba(34,230,190,.16), transparent 36%),
+        radial-gradient(ellipse at 88% 6%, rgba(92,124,255,.18), transparent 34%),
+        linear-gradient(160deg, #040811 0%, #06091a 55%, #040810 100%);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      padding: 24px;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .13;
+      background-image: radial-gradient(circle, rgba(255,255,255,.5) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(ellipse at 50% 40%, black, transparent 76%);
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 48px);
+      display: grid;
+      place-items: center;
+    }
+    .portal {
+      width: min(1040px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(160deg, rgba(14,21,40,.94), rgba(6,10,20,.98));
+      box-shadow: 0 28px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+      overflow: hidden;
+    }
+    .hero {
+      padding: 32px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(90deg, rgba(34,230,190,.07), rgba(92,124,255,.08));
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #031012;
+      background: linear-gradient(135deg, #22e6be 0%, #20d4cc 50%, #5c7cff 100%);
+      box-shadow: 0 8px 26px rgba(34,230,190,.28), 0 0 0 1px rgba(255,255,255,.08);
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -1.2px;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #a8b8d0;
+      font-size: 15px;
+      max-width: 680px;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge.test {
+      color: #ffaaa9;
+      background: rgba(255,107,107,.10);
+      border: 1px solid rgba(255,107,107,.28);
+    }
+    .badge.ver {
+      color: #7ae8ce;
+      background: rgba(34,230,190,.08);
+      border: 1px solid rgba(34,230,190,.26);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge.warn {
+      color: #ffd888;
+      background: rgba(255,209,102,.08);
+      border: 1px solid rgba(255,209,102,.24);
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--danger);
+      box-shadow: 0 0 0 0 rgba(255,107,107,.5);
+      animation: pulse 2s ease infinite;
+    }
+    .hero-note {
+      min-width: 240px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(0,0,0,.18);
+      color: #b7c7dd;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .hero-note b { color: var(--text); }
+    .body {
+      padding: 26px 32px 32px;
+    }
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: #536981;
+      margin-bottom: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .tester-card {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      padding: 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      min-height: 150px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tester-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 10%, rgba(34,230,190,.14), transparent 38%);
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+    .tester-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(34,230,190,.34);
+      background: linear-gradient(145deg, rgba(34,230,190,.08), rgba(92,124,255,.04));
+    }
+    .tester-card:hover::before { opacity: 1; }
+    .tester-card > * { position: relative; z-index: 1; }
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #031012;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      margin-bottom: 14px;
+    }
+    .tester-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .tester-meta {
+      color: #7a90b0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .enter {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #7ae8ce;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .rules {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .rule {
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,.035);
+      color: #a8b8d0;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .rule b { color: var(--text); }
+    footer {
+      padding: 0 32px 28px;
+      color: #52677e;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,107,.5); }
+      70% { box-shadow: 0 0 0 7px rgba(255,107,107,0); }
+    }
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .rules { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .wrap { min-height: calc(100vh - 24px); }
+      .hero, .body { padding: 22px; }
+      .grid { grid-template-columns: 1fr; }
+      footer { padding: 0 22px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="portal">
+      <header class="hero">
+        <div>
+          <div class="brand">
+            <div class="logo">VX</div>
+            <div>
+              <h1>Agente IA Velox V2.1</h1>
+              <p class="subtitle">Portal de acceso para campo controlado. Elegí tu entorno de tester, probá con clientes ficticios y completá tu evaluación.</p>
+            </div>
+          </div>
+          <div class="badges">
+            <span class="badge test"><span class="dot"></span> TEST — no usar datos reales</span>
+            <span class="badge ver">V2.1</span>
+            <span class="badge warn">Campo controlado</span>
+          </div>
+        </div>
+        <aside class="hero-note">
+          <b>Uso interno.</b><br>
+          No usar DNI reales, datos de tarjeta ni clientes reales. Para cada caso nuevo, entrá a tu entorno y usá <b>Reiniciar caso</b>.
+        </aside>
+      </header>
+
+      <div class="body">
+        <div class="section-label">Elegir entorno de tester</div>
+        <div class="grid">
+          <a class="tester-card" href="fernando.html">
+            <div class="avatar">F</div>
+            <div class="tester-name">Fernando</div>
+            <div class="tester-meta">Entorno de prueba — Fernando<br>Documento de evaluación vinculado.</div>
+            <div class="enter">Entrar como Fernando →</div>
+          </a>
+          <a class="tester-card" href="alejandro.html">
+            <div class="avatar">A</div>
+            <div class="tester-name">Alejandro</div>
+            <div class="tester-meta">Entorno de prueba — Alejandro<br>Documento de evaluación vinculado.</div>
+            <div class="enter">Entrar como Alejandro →</div>
+          </a>
+          <a class="tester-card" href="ricardo.html">
+            <div class="avatar">R</div>
+            <div class="tester-name">Ricardo</div>
+            <div class="tester-meta">Entorno de prueba — Ricardo<br>Documento de evaluación vinculado.</div>
+            <div class="enter">Entrar como Ricardo →</div>
+          </a>
+          <a class="tester-card" href="rodrigo.html">
+            <div class="avatar">R</div>
+            <div class="tester-name">Rodrigo</div>
+            <div class="tester-meta">Entorno de prueba — Rodrigo<br>Documento de evaluación vinculado.</div>
+            <div class="enter">Entrar como Rodrigo →</div>
+          </a>
+          <a class="tester-card" href="tiziano.html">
+            <div class="avatar">T</div>
+            <div class="tester-name">Tiziano</div>
+            <div class="tester-meta">Entorno de prueba — Tiziano<br>Documento de evaluación vinculado.</div>
+            <div class="enter">Entrar como Tiziano →</div>
+          </a>
+        </div>
+
+        <div class="rules">
+          <div class="rule"><b>1. Probar como cliente ficticio.</b><br>No uses datos reales ni escenarios con clientes reales.</div>
+          <div class="rule"><b>2. Reiniciar entre casos.</b><br>Cada caso nuevo debe empezar con una sesión nueva.</div>
+          <div class="rule"><b>3. Registrar observaciones.</b><br>Si algo responde raro, anotarlo en el documento de evaluación.</div>
+        </div>
+      </div>
+
+      <footer>AGENTE IA VELOX · CAMPO CONTROLADO V2.1 · Portal estático para GitHub Pages</footer>
+    </section>
+  </main>
+</body>
+</html>
