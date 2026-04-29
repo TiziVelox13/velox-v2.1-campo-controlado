@@ -997,7 +997,7 @@
   const TESTER_NAME        = "Alejandro";
   const TEST_ENVIRONMENT   = "Entorno de prueba — Alejandro";
   const AGENT_VERSION = "V2.1.2 COMERCIAL";
-  const N8N_WEBHOOK_URL = "https://veloxv4v4.app.n8n.cloud/webhook/6a1f0e68-246e-4ffd-b3af-45bc12e98b18/chat";
+  const N8N_WEBHOOK_URL = "https://velox4v4.app.n8n.cloud/webhook/6a1f0e68-246e-4ffd-b3af-45bc12e98b18/chat";
   const EVALUATION_DOC_URL = "https://docs.google.com/document/d/1c5wO8ZiLP0MO5r5IFbWb0WnvpB3QezrJGeRol_IOCxU/edit?usp=sharing";
 
   /* ─────────────────────────────────────────────────────────
@@ -1144,6 +1144,7 @@
 
     fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
     .then(function(res) {
