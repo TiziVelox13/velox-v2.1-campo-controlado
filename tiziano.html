@@ -1052,13 +1052,26 @@ function initSession() {
   updateSessionDisplay();
 }
 
-initSession();
+document.addEventListener('DOMContentLoaded', function () {
+  initSession();
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
+});
 
   function updateSessionDisplay() {
-    var el = document.getElementById('session-display');
-    if (el) el.textContent = currentSessionId;
+  const el = document.getElementById('session-display');
+
+  if (!el) {
+    console.warn("No existe session-display");
+    return;
   }
+
+  if (!currentSessionId) {
+    el.textContent = "error";
+    return;
+  }
+
+  el.textContent = currentSessionId;
+}
 
   updateSessionDisplay();
 
@@ -1091,7 +1104,13 @@ initSession();
      ENVIAR MENSAJE
   ───────────────────────────────────────────────────────── */
   function sendMessage() {
-    if (isWaiting) return;
+
+  if (!currentSessionId) {
+    console.error("SessionId no existe");
+    return;
+  }
+
+  if (isWaiting) return;
 
     var text = inputEl.value.trim();
     if (!text) {
