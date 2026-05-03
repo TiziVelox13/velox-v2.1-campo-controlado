@@ -1038,7 +1038,21 @@
      - El payload SIEMPRE manda sessionId: currentSessionId.
   ───────────────────────────────────────────────────────── */
 
-  const currentSessionId = "rodrigo";
+  const TESTER_NAME = "rodrigo"; // cambiar en cada archivo
+
+function createSessionId() {
+  return TESTER_NAME + "_" + Date.now();
+}
+
+let currentSessionId;
+
+function initSession() {
+  currentSessionId = createSessionId();
+  console.log('VELOX SESSION ACTUAL:', currentSessionId);
+  updateSessionDisplay();
+}
+
+initSession();
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
 
   function updateSessionDisplay() {
@@ -1257,9 +1271,16 @@
      REINICIAR CONVERSACIÓN
   ───────────────────────────────────────────────────────── */
   function resetConversation() {
-    conversationHistory = [];
-    isWaiting = false;
-    btnSend.disabled = false;
+  currentSessionId = createSessionId();
+
+  console.log('VELOX NUEVO SESSION ID:', currentSessionId);
+
+  updateSessionDisplay();
+
+  // 🔥 limpiar chat visual (IMPORTANTE)
+  const chatContainer = document.getElementById('chat-container');
+  if (chatContainer) chatContainer.innerHTML = '';
+}
 
     /* Regenerar sessionId para el nuevo caso.
        Esto es crítico: si no cambia, n8n Simple Memory arrastra contexto viejo. */
