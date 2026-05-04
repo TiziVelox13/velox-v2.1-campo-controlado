@@ -1044,9 +1044,12 @@ function createSessionId() {
   return TESTER_NAME + "_" + Date.now();
 }
 
-let currentSessionId;
+let currentSessionId = null;
 
 function initSession() {
+
+  console.log("INIT ejecutado");
+
   currentSessionId = createSessionId();
 
   if (!currentSessionId) {
@@ -1056,12 +1059,12 @@ function initSession() {
 
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
 
-  
+  updateSessionDisplay();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+window.onload = function () {
   initSession();
-});
+};
 
   function updateSessionDisplay() {
   const el = document.getElementById('session-display');

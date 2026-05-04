@@ -1047,15 +1047,24 @@ function createSessionId() {
 let currentSessionId = null;
 
 function initSession() {
+
+  console.log("INIT ejecutado");
+
   currentSessionId = createSessionId();
+
+  if (!currentSessionId) {
+    console.error("ERROR: sessionId no generado");
+    return;
+  }
 
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
 
+  updateSessionDisplay();
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+window.onload = function () {
   initSession();
-});
+};
 
   function updateSessionDisplay() {
   const el = document.getElementById('session-display');
