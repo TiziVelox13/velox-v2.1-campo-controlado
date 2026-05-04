@@ -1039,7 +1039,8 @@
   ───────────────────────────────────────────────────────── */
 
 function createSessionId() {
-  return TESTER_NAME + "_" + Date.now();
+  var rand = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return TESTER_NAME + "_" + Date.now() + "_" + rand;
 }
 
 let currentSessionId = null;
@@ -1317,6 +1318,7 @@ window.onload = function () {
     inputEl.style.height = 'auto';
     inputEl.focus();
 
+    updateSessionDisplay();
     showToast('Caso reiniciado. Nueva sesión creada.', 2200);
   }  /* ── fin resetConversation ── */
 
