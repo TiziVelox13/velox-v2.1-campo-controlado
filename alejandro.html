@@ -1057,12 +1057,10 @@ function initSession() {
 
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
 
-  updateSessionDisplay();
-}
+  
 
 document.addEventListener('DOMContentLoaded', function () {
   initSession();
-  console.log('VELOX SESSION ACTUAL:', currentSessionId);
 });
 
   function updateSessionDisplay() {
@@ -1302,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   console.log('VELOX NUEVO SESSION ID:', currentSessionId);
 
-  updateSessionDisplay();
+  
 
   // 🔥 limpiar chat visual (IMPORTANTE)
   const chatContainer = document.getElementById('chat-container');
@@ -1313,7 +1311,7 @@ document.addEventListener('DOMContentLoaded', function () {
        Esto es crítico: si no cambia, n8n Simple Memory arrastra contexto viejo. */
 
     console.log('VELOX NUEVO SESSION ID:', currentSessionId);
-    updateSessionDisplay();
+    
 
     /* Limpiar mensajes */
     messagesEl.innerHTML = '';
