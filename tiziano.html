@@ -1044,12 +1044,13 @@ function createSessionId() {
   return TESTER_NAME + "_" + Date.now();
 }
 
-let currentSessionId;
+let currentSessionId = null;
 
 function initSession() {
   currentSessionId = createSessionId();
+
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
-  updateSessionDisplay();
+
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1066,14 +1067,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (!currentSessionId) {
-    el.textContent = "error";
-    return;
-  }
+  el.textContent = "cargando...";
+  return;
+}
 
   el.textContent = currentSessionId;
 }
 
-  updateSessionDisplay();
 
   /* ─────────────────────────────────────────────────────────
      DOM REFS
@@ -1107,6 +1107,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (!currentSessionId) {
     console.error("SessionId no existe");
+    alert("Error de sesión. Reiniciá el caso.");
     return;
   }
 
@@ -1294,8 +1295,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   console.log('VELOX NUEVO SESSION ID:', currentSessionId);
 
-  updateSessionDisplay();
-
   // 🔥 limpiar chat visual (IMPORTANTE)
   const chatContainer = document.getElementById('chat-container');
   if (chatContainer) chatContainer.innerHTML = '';
@@ -1305,8 +1304,6 @@ document.addEventListener('DOMContentLoaded', function () {
        Esto es crítico: si no cambia, n8n Simple Memory arrastra contexto viejo. */
 
     console.log('VELOX NUEVO SESSION ID:', currentSessionId);
-    updateSessionDisplay();
-
     /* Limpiar mensajes */
     messagesEl.innerHTML = '';
 

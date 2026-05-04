@@ -1044,11 +1044,18 @@ function createSessionId() {
   return TESTER_NAME + "_" + Date.now();
 }
 
-let currentSessionId;
+let currentSessionId = null;
 
 function initSession() {
   currentSessionId = createSessionId();
+
+  if (!currentSessionId) {
+    console.error("ERROR: sessionId no generado");
+    return;
+  }
+
   console.log('VELOX SESSION ACTUAL:', currentSessionId);
+
   updateSessionDisplay();
 }
 
@@ -1066,14 +1073,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (!currentSessionId) {
-    el.textContent = "error";
+    el.textContent = "cargando...";
     return;
   }
 
   el.textContent = currentSessionId;
 }
 
-  updateSessionDisplay();
+  el.textContent = currentSessionId;
+}
+
 
   /* ─────────────────────────────────────────────────────────
      DOM REFS
@@ -1107,6 +1116,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (!currentSessionId) {
     console.error("SessionId no existe");
+    alert("Error de sesión. Reiniciá el caso.");
     return;
   }
 
